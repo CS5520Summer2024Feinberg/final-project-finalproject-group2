@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    // google service
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -30,12 +32,15 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     buildFeatures {
-        viewBinding = true
         dataBinding = true
     }
 }
 
 dependencies {
+    // firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
 
     implementation(libs.appcompat)
     implementation(libs.material)
