@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "426278453496",
+    "project_id": "neu-mad-group2-finalproject",
+    "storage_bucket": "neu-mad-group2-finalproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:426278453496:android:b1cdb6dacf2eac41243b0d",
+        "android_client_info": {
+          "package_name": "edu.northeastern.group2final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "426278453496-0f23ds2uqt34qq4tgopvqgi3n6grdpc9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.northeastern.group2final",
+            "certificate_hash": "6f59ec479f472c73a912f2cdb1f9c71778bf47c9"
+          }
+        },
+        {
+          "client_id": "426278453496-an1dqs4j8pe6vjn65n7qor0jiic42rsh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHuA4kmXOFu_RmvXIi9020eytOYe3NOT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "426278453496-an1dqs4j8pe6vjn65n7qor0jiic42rsh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

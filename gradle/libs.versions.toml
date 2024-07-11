@@ -9,6 +9,7 @@ activity = "1.9.0"
 constraintlayout = "2.1.4"
 google-services = "4.4.2"
 firebase = "33.1.1"
+nav_version = "2.7.7"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -21,6 +22,8 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth"}
+navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "nav_version"}
+navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "nav_version"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

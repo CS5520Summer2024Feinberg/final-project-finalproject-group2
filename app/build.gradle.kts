@@ -42,6 +42,10 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
 
+    // navigation
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
