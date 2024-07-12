@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_login" />
     <fragment
         android:id="@+id/titleFragment"
-        android:name="edu.northeastern.group2final.login.TitleFragment"
+        android:name="edu.northeastern.group2final.login.WelcomeFragment"
         android:label="fragment_title"
         tools:layout="@layout/fragment_title" />
 </navigation>

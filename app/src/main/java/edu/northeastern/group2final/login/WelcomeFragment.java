@@ -20,14 +20,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.northeastern.group2final.R;
-import edu.northeastern.group2final.databinding.FragmentTitleBinding;
+import edu.northeastern.group2final.databinding.FragmentWelcomeBinding;
 
-public class TitleFragment extends Fragment {
+public class WelcomeFragment extends Fragment {
     private static final int SIGN_IN_RESULT_CODE = 666;
-    private static final String TAG = "TitleFragment";
-    private FragmentTitleBinding binding;
+    private static final String TAG = "WelcomeFragment";
+    private FragmentWelcomeBinding binding;
 
-    public TitleFragment() {
+    public WelcomeFragment() {
         // Required empty public constructor
     }
 
@@ -57,7 +57,7 @@ public class TitleFragment extends Fragment {
                 .setAvailableProviders(providers)
                 .build();
 
-        startActivityForResult(signInIntent, TitleFragment.SIGN_IN_RESULT_CODE);
+        startActivityForResult(signInIntent, WelcomeFragment.SIGN_IN_RESULT_CODE);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class TitleFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_title, container, false);
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_welcome, container, false);
 
         return binding.getRoot();
     }
