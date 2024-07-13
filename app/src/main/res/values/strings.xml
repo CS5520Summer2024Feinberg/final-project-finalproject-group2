@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">get_up_app</string>
+    <string name="app_name">Get Up Monster</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="logout_button_text">Log Out</string>
+    <string name="login_button_text">Log in</string>
 </resources>

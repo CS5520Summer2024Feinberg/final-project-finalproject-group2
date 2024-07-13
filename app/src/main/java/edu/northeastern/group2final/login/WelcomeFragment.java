@@ -12,9 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,24 +27,54 @@ import edu.northeastern.group2final.databinding.FragmentWelcomeBinding;
 public class WelcomeFragment extends Fragment {
     private static final int SIGN_IN_RESULT_CODE = 666;
     private static final String TAG = "WelcomeFragment";
+
+    private static LoginViewModel viewModel;
+
     private FragmentWelcomeBinding binding;
 
-    public WelcomeFragment() {
-        // Required empty public constructor
-    }
-
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_welcome, container, false);
+        return binding.getRoot();
     }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+        observeAuthenticationState();
+
         binding.signInBtn.setOnClickListener(
                 v -> launchSignInFlow()
+        );
+    }
+
+    private void observeAuthenticationState() {
+
+        viewModel.getAuthenticationStateLiveData().observe(
+                getViewLifecycleOwner(), authenticationState -> {
+                    if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
+                        // User is authenticated
+                        binding.signInBtn.setText(getString(R.string.logout_button_text));
+
+
+
+                        binding.signInBtn.setOnClickListener(v -> {
+                            // Implement logout
+                            AuthUI.getInstance().signOut(requireContext());
+                        });
+                        binding.welcomeTv.setText(
+                                "User: " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName() + " is currently logged in" );
+
+                    } else {
+                        // User is not authenticated
+                        binding.signInBtn.setText(getString(R.string.login_button_text));
+                        binding.signInBtn.setOnClickListener(v -> launchSignInFlow());
+                        binding.welcomeTv.setText("Please Log in");
+                    }
+                }
         );
     }
 
@@ -72,11 +104,4 @@ public class WelcomeFragment extends Fragment {
         }
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_welcome, container, false);
-
-        return binding.getRoot();
-    }
 }
