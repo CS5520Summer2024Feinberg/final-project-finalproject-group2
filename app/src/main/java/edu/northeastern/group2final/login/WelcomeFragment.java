@@ -18,10 +18,12 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 
 import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.SuggestionActivity;
 import edu.northeastern.group2final.databinding.FragmentWelcomeBinding;
 
 public class WelcomeFragment extends Fragment {
@@ -52,21 +54,30 @@ public class WelcomeFragment extends Fragment {
     }
 
     private void observeAuthenticationState() {
-
         viewModel.getAuthenticationStateLiveData().observe(
                 getViewLifecycleOwner(), authenticationState -> {
                     if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
                         // User is authenticated
                         binding.signInBtn.setText(getString(R.string.logout_button_text));
 
-
-
-                        binding.signInBtn.setOnClickListener(v -> {
-                            // Implement logout
-                            AuthUI.getInstance().signOut(requireContext());
+                        // go next button becomes visible
+                        binding.goNextBtn.setVisibility(View.VISIBLE);
+                        binding.goNextBtn.setText(getString(R.string.go_next_button_text));
+                        binding.goNextBtn.setOnClickListener( v -> {
+                            Intent intent = new Intent(getActivity(), SuggestionActivity.class);
+                            startActivity(intent);
                         });
+
+                        // Implement logout
+                        binding.signInBtn.setOnClickListener(v -> {
+                            AuthUI.getInstance().signOut(requireContext());
+                            binding.goNextBtn.setVisibility(View.GONE);
+                        });
+
                         binding.welcomeTv.setText(
-                                "User: " + FirebaseAuth.getInstance().getCurrentUser().getDisplayName() + " is currently logged in" );
+                                MessageFormat.format(
+                                        "User: {0} is currently logged in",
+                                        FirebaseAuth.getInstance().getCurrentUser().getDisplayName()));
 
                     } else {
                         // User is not authenticated
