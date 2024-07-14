@@ -7,12 +7,12 @@
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="edu.northeastern.group2final.login.LoginFragment"
+        android:name="edu.northeastern.group2final.onboarding.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" />
     <fragment
         android:id="@+id/welcomeFragment"
-        android:name="edu.northeastern.group2final.login.WelcomeFragment"
+        android:name="edu.northeastern.group2final.onboarding.WelcomeFragment"
         android:label="WelcomeFragment" />
     <activity
         android:id="@+id/suggestionActivity"

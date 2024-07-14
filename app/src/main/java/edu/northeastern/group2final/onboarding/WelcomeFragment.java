@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.login;
+package edu.northeastern.group2final.onboarding;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -29,11 +29,8 @@ import edu.northeastern.group2final.databinding.FragmentWelcomeBinding;
 public class WelcomeFragment extends Fragment {
     private static final int SIGN_IN_RESULT_CODE = 666;
     private static final String TAG = "WelcomeFragment";
-
     private static LoginViewModel viewModel;
-
     private FragmentWelcomeBinding binding;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

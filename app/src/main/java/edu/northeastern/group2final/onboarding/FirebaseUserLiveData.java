@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.login;
+package edu.northeastern.group2final.onboarding;
 
 import androidx.lifecycle.LiveData;
 
