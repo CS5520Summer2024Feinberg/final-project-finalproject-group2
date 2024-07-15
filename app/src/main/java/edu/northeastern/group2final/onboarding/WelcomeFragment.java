@@ -14,6 +14,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.firebase.ui.auth.AuthMethodPickerLayout;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseAuth;
@@ -92,9 +93,16 @@ public class WelcomeFragment extends Fragment {
                 new AuthUI.IdpConfig.GoogleBuilder().build()
         );
 
+        AuthMethodPickerLayout authMethodPickerLayout = new AuthMethodPickerLayout
+                .Builder(R.layout.auth_method_picker_layout)
+                .setGoogleButtonId(R.id.google_sign_in_button)
+                .setEmailButtonId(R.id.email_sign_in_button)
+                .build();
+
         Intent signInIntent = AuthUI.getInstance()
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
+                .setAuthMethodPickerLayout(authMethodPickerLayout)
                 .build();
 
         startActivityForResult(signInIntent, WelcomeFragment.SIGN_IN_RESULT_CODE);

@@ -15,4 +15,7 @@
     <string name="re_type_password">Re-type Password</string>
     <string name="your_name">Full Name</string>
     <string name="signup">Sign Up</string>
+    <string name="sign_in_with_email">Sign in with Email</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="choose_a_register_method">Choose a Register Method</string>
 </resources>
