@@ -18,20 +18,20 @@ import com.firebase.ui.auth.IdpResponse;
 import java.util.Collections;
 import java.util.List;
 
-import edu.northeastern.group2final.databinding.FragmentRegisterBinding;
+import edu.northeastern.group2final.databinding.FragmentSignUpBinding;
 
 
-public class RegisterFragment extends Fragment {
+public class SignUpFragment extends Fragment {
     public static final int SIGN_IN_RESULT_CODE = 666;
-    private static final String TAG = "RegisterFragment";
-    private FragmentRegisterBinding binding;
+    private static final String TAG = "SignUpFragment";
+    private FragmentSignUpBinding binding;
 
-    public RegisterFragment() {
+    public SignUpFragment() {
         // Required empty public constructor
     }
 
-    public static RegisterFragment newInstance(String param1, String param2) {
-        RegisterFragment fragment = new RegisterFragment();
+    public static SignUpFragment newInstance(String param1, String param2) {
+        SignUpFragment fragment = new SignUpFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -44,7 +44,7 @@ public class RegisterFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentRegisterBinding.inflate(inflater, container, false);
+        binding = FragmentSignUpBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
     @Override

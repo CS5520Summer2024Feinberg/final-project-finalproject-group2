@@ -11,7 +11,7 @@ import androidx.viewpager.widget.ViewPager;
 import java.util.ArrayList;
 
 import edu.northeastern.group2final.onboarding.LoginFragment;
-import edu.northeastern.group2final.onboarding.RegisterFragment;
+import edu.northeastern.group2final.onboarding.SignUpFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
         AuthenticationPagerAdapter pagerAdapter = new AuthenticationPagerAdapter(getSupportFragmentManager());
         pagerAdapter.addFragment(new LoginFragment());
-        pagerAdapter.addFragment(new RegisterFragment());
+        pagerAdapter.addFragment(new SignUpFragment());
         viewPager.setAdapter(pagerAdapter);
 
     }
