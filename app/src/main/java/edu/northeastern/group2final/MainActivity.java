@@ -23,8 +23,8 @@ public class MainActivity extends AppCompatActivity {
         ViewPager viewPager = findViewById(R.id.viewPager);
 
         AuthenticationPagerAdapter pagerAdapter = new AuthenticationPagerAdapter(getSupportFragmentManager());
-        pagerAdapter.addFragmet(new LoginFragment());
-        pagerAdapter.addFragmet(new RegisterFragment());
+        pagerAdapter.addFragment(new LoginFragment());
+        pagerAdapter.addFragment(new RegisterFragment());
         viewPager.setAdapter(pagerAdapter);
 
     }
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             return fragmentList.size();
         }
 
-        void addFragmet(Fragment fragment) {
+        void addFragment(Fragment fragment) {
             fragmentList.add(fragment);
         }
     }
