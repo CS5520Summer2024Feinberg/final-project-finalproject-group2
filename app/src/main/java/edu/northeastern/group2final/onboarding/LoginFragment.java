@@ -14,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.SuggestionActivity;
@@ -67,9 +69,6 @@ public class LoginFragment extends Fragment {
                                 getViewLifecycleOwner(), authenticationState -> {
                                     if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
                                         String loggedInMessage = viewModel.getGreetingMessage();
-                                        Snackbar.make(binding.loginConstraintLayout, loggedInMessage,
-                                                Snackbar.LENGTH_SHORT).show();
-
                                         Intent intent = new Intent(getActivity(), SuggestionActivity.class);
                                         startActivity(intent);
                                     } else {
@@ -79,15 +78,18 @@ public class LoginFragment extends Fragment {
                                 }
                         );
                     } else {
-                        // If sign in fails, display a message to the user.
-                        viewModel.getAuthenticationStateLiveData().observe(
-                                getViewLifecycleOwner(), authenticationState -> {
-                                    if (authenticationState == LoginViewModel.AuthenticationState.INVALID_AUTHENTICATION) {
-                                        Snackbar.make(binding.loginConstraintLayout, "Authentication Failed.",
-                                                Snackbar.LENGTH_SHORT).show();
-                                    }
-                                }
-                        );
+                        // if sign in failed
+                        Exception exception = task.getException();
+                        String errorMessage = "Authentication Failed.";
+                        // if password is wrong
+                        if (exception instanceof FirebaseAuthInvalidCredentialsException) {
+                            errorMessage = "Incorrect password. Please try again.";
+                            // if user doesn't exist
+                        } else if (exception instanceof FirebaseAuthInvalidUserException) {
+                            errorMessage = "No user found with this email. Please check and try again.";
+                        }
+                        binding.tvErrorMessage.setText(errorMessage);
+                        binding.tvErrorMessage.setVisibility(View.VISIBLE);
                     }
                 });
     }
