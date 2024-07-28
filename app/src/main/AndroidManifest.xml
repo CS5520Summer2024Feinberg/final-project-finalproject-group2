@@ -16,7 +16,7 @@
             android:name=".SuggestionActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".onboarding.controller.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:exported="true">
             <intent-filter>

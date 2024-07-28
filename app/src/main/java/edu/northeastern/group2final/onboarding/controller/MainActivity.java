@@ -1,4 +1,4 @@
-package edu.northeastern.group2final;
+package edu.northeastern.group2final.onboarding.controller;
 
 import android.os.Bundle;
 
@@ -10,8 +10,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import java.util.ArrayList;
 
-import edu.northeastern.group2final.onboarding.LoginFragment;
-import edu.northeastern.group2final.onboarding.SignUpFragment;
+import edu.northeastern.group2final.R;
 
 public class MainActivity extends AppCompatActivity {
 

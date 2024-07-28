@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.onboarding;
+package edu.northeastern.group2final.onboarding.model;
 
 import androidx.lifecycle.LiveData;
 

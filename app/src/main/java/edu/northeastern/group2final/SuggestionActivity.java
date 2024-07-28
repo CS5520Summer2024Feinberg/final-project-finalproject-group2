@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import edu.northeastern.group2final.databinding.ActivitySuggestionBinding;
+import edu.northeastern.group2final.onboarding.controller.MainActivity;
 
 public class SuggestionActivity extends AppCompatActivity {
     private static final int SIGN_IN_RESULT_CODE = 666;

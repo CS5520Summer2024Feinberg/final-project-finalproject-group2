@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.onboarding;
+package edu.northeastern.group2final.onboarding.controller;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import edu.northeastern.group2final.databinding.FragmentSignUpBinding;
+import edu.northeastern.group2final.onboarding.util.SignUpType;
 
 
 public class SignUpFragment extends Fragment {

@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.onboarding;
+package edu.northeastern.group2final.onboarding.controller;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.SuggestionActivity;
 import edu.northeastern.group2final.databinding.FragmentLoginBinding;
+import edu.northeastern.group2final.onboarding.util.AuthenticationState;
+import edu.northeastern.group2final.onboarding.viewmodel.LoginViewModel;
 
 public class LoginFragment extends Fragment {
     private static final int SIGN_IN_RESULT_CODE = 666;
@@ -67,7 +69,7 @@ public class LoginFragment extends Fragment {
                         // Sign in success
                         viewModel.getAuthenticationStateLiveData().observe(
                                 getViewLifecycleOwner(), authenticationState -> {
-                                    if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
+                                    if (authenticationState == AuthenticationState.AUTHENTICATED) {
                                         String loggedInMessage = viewModel.getGreetingMessage();
                                         Intent intent = new Intent(getActivity(), SuggestionActivity.class);
                                         startActivity(intent);

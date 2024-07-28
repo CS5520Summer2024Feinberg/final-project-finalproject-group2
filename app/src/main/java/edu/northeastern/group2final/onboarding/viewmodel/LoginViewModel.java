@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.onboarding;
+package edu.northeastern.group2final.onboarding.viewmodel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
@@ -6,14 +6,10 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseUser;
 
-public class LoginViewModel extends ViewModel {
+import edu.northeastern.group2final.onboarding.model.FirebaseUserLiveData;
+import edu.northeastern.group2final.onboarding.util.AuthenticationState;
 
-    // authentication states
-   enum AuthenticationState {
-        AUTHENTICATED,
-        UNAUTHENTICATED,
-        INVALID_AUTHENTICATION
-    }
+public class LoginViewModel extends ViewModel {
 
     // FirebaseUserLiveData instance
     private FirebaseUserLiveData firebaseUserLiveData = new FirebaseUserLiveData();
