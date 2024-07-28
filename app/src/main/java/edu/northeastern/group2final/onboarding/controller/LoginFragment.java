@@ -18,10 +18,10 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 import edu.northeastern.group2final.R;
-import edu.northeastern.group2final.SuggestionActivity;
 import edu.northeastern.group2final.databinding.FragmentLoginBinding;
 import edu.northeastern.group2final.onboarding.util.AuthenticationState;
 import edu.northeastern.group2final.onboarding.viewmodel.LoginViewModel;
+import edu.northeastern.group2final.suggestion.controller.SuggestionsActivity;
 
 public class LoginFragment extends Fragment {
     private static final int SIGN_IN_RESULT_CODE = 666;
@@ -71,7 +71,7 @@ public class LoginFragment extends Fragment {
                                 getViewLifecycleOwner(), authenticationState -> {
                                     if (authenticationState == AuthenticationState.AUTHENTICATED) {
                                         String loggedInMessage = viewModel.getGreetingMessage();
-                                        Intent intent = new Intent(getActivity(), SuggestionActivity.class);
+                                        Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
                                         startActivity(intent);
                                     } else {
                                         Snackbar.make(binding.loginConstraintLayout, "Authentication Failed.",
@@ -101,7 +101,7 @@ public class LoginFragment extends Fragment {
                 getViewLifecycleOwner(), authenticationState -> {
                     switch (authenticationState) {
                         case AUTHENTICATED:
-                            Intent intent = new Intent(getActivity(), SuggestionActivity.class);
+                            Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
                             startActivity(intent);
                             break;
                         case UNAUTHENTICATED:
