@@ -1,5 +1,8 @@
 package edu.northeastern.group2final.suggestion.controller;
 
+import static android.app.PendingIntent.getActivity;
+
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +17,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.photoSharing.PhotoSharingActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.view.LLMViewModel;
@@ -130,6 +134,9 @@ public class SuggestionsActivity extends AppCompatActivity {
                     removeBlockingView();
                     bubblePicker.setEnabled(true); // Re-enable the BubblePicker after 5 seconds
                 }, 5000);
+
+                Intent intent = new Intent(SuggestionsActivity.this, PhotoSharingActivity.class);
+                startActivity(intent);
             }
 
             @Override
