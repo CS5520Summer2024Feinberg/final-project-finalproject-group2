@@ -3,6 +3,8 @@ package edu.northeastern.group2final.suggestion.controller;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,8 +32,15 @@ import com.kienht.bubblepicker.rendering.BubblePicker;
 public class SuggestionsActivity extends AppCompatActivity {
 
     private LLMViewModel viewModel;
+
     TextView textView;
-    BubblePicker bubblePicker;
+    TextView s1TitleTextView;
+    TextView s2TitleTextView;
+    TextView s3TitleTextView;
+
+    Button s1ContentButton;
+    Button s2ContentButton;
+    Button s3ContentButton;
     List<Suggestion> suggestions;
     TextView blockingView;
 
@@ -40,8 +49,16 @@ public class SuggestionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_suggestions);
-        bubblePicker = findViewById(R.id.picker);
+
         textView = findViewById(R.id.textView);
+        s1TitleTextView = findViewById(R.id.s1_title);
+        s2TitleTextView = findViewById(R.id.s2_title);
+        s3TitleTextView = findViewById(R.id.s3_title);
+
+        s1ContentButton = findViewById(R.id.s1_content);
+        s2ContentButton = findViewById(R.id.s2_content);
+        s3ContentButton = findViewById(R.id.s3_content);
+
         viewModel = new ViewModelProvider(this).get(LLMViewModel.class);
 
         viewModel.getResponseLiveData().observe(this, llmResponse -> {
@@ -50,8 +67,8 @@ public class SuggestionsActivity extends AppCompatActivity {
                 if (firstChoice != null && firstChoice.getMessage() != null) {
                     suggestions = parseSuggestions(firstChoice.getMessage().getContent());
                     System.out.println(suggestions.size());
-                    textView.setText(firstChoice.getMessage().getContent());
-                    presentBubbles();
+//                    textView.setText(firstChoice.getMessage().getContent());
+                    presentSuggestions();
                 } else {
                     textView.setText("No content available");
                 }
@@ -77,8 +94,8 @@ public class SuggestionsActivity extends AppCompatActivity {
             System.out.println("Processing part: " + part);
             int idx = part.indexOf("-");
             if (idx != -1) {
-                String prompt = part.substring(0, idx).trim();
-                String content = part.substring(idx + 3).trim();
+                String prompt = part.substring(2, idx).trim();
+                String content = part.substring(idx + 2).trim();
                 suggestions.add(new Suggestion(prompt, content));
                 System.out.println("Prompt: " + prompt + ", Content: " + content);
             }
@@ -86,77 +103,26 @@ public class SuggestionsActivity extends AppCompatActivity {
         return suggestions;
     }
 
-    private void presentBubbles() {
-        if (bubblePicker == null || suggestions == null || suggestions.isEmpty()) {
-            return; // Exit if bubblePicker is not initialized or there are no suggestions
+    private void presentSuggestions() {
+        if (suggestions == null || suggestions.size() != 3) {
+            return;
         }
-
-        // Create a list of PickerItems for the BubblePicker
-        ArrayList<PickerItem> pickerItems = new ArrayList<>();
-        Random random = new Random();
-
-        for (Suggestion suggestion : suggestions) {
-            PickerItem item = new PickerItem();
-            item.setTitle(suggestion.getPrompt());
-            item.setTextColor(Color.BLACK);
-//            item.setCustomData(suggestion);
-//            item.setColor(random.nextInt());
-            item.setColor(Color.rgb(random.nextInt(256), random.nextInt(256), random.nextInt(256))); // Generate random color
-//            item.setImgDrawable(getDrawable(R.drawable.morning));
-            pickerItems.add(item);
-        }
-
-        // Ensure BubblePicker is initialized
-        bubblePicker.setAdapter(new BubblePickerAdapter() {
-            @Override
-            public int getTotalCount() {
-                return pickerItems.size();
-            }
-
-            @Override
-            public PickerItem getItem(int position) {
-                return pickerItems.get(position);
-            }
-        });
-
-        // Set the listener for BubblePicker
-        bubblePicker.setListener(new BubblePickerListener() {
-            @Override
-            public void onBubbleSelected(PickerItem item) {
-                Toast.makeText(getApplicationContext(), item.getTitle(), Toast.LENGTH_SHORT).show();
-//                Suggestion suggestion = (Suggestion) item.getCustomData();
-                showBlockingView();
-                new Handler().postDelayed(() -> {
-                    removeBlockingView();
-                    bubblePicker.setEnabled(true); // Re-enable the BubblePicker after 5 seconds
-                }, 5000);
-            }
-
-            @Override
-            public void onBubbleDeselected(PickerItem item) {
-                // Handle the event when a bubble is deselected
-            }
-        });
+        s1TitleTextView.setText(suggestions.get(0).getPrompt());
+        s2TitleTextView.setText(suggestions.get(1).getPrompt());
+        s3TitleTextView.setText(suggestions.get(2).getPrompt());
+        s1ContentButton.setText(getTruncatedContent(suggestions.get(0).getContent()));
+        s2ContentButton.setText(getTruncatedContent(suggestions.get(1).getContent()));
+        s3ContentButton.setText(getTruncatedContent(suggestions.get(2).getContent()));
     }
 
-    private void showBlockingView() {
-        // Create a blocking view and add it to the main layout
-        blockingView = new TextView(this);
-        blockingView.setText("Interaction Disabled");
-        blockingView.setTextSize(24);
-        blockingView.setBackgroundColor(Color.argb(150, 0, 0, 0)); // Semi-transparent black
-        blockingView.setTextColor(Color.WHITE);
-        blockingView.setGravity(android.view.Gravity.CENTER);
-
-        // Set layout parameters to cover the whole screen
-        android.widget.FrameLayout.LayoutParams params = new android.widget.FrameLayout.LayoutParams(
-                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-        );
-
-        // Add the blocking view to the root layout
-        ((android.widget.FrameLayout) findViewById(android.R.id.content)).addView(blockingView, params);
+    private String getTruncatedContent(String content) {
+        if (content.length() > 20) {
+            return content.substring(0, 40) + "...";
+        } else {
+            return content;
+        }
     }
+
 
     private void removeBlockingView() {
         // Remove the blocking view from the root layout
@@ -166,4 +132,54 @@ public class SuggestionsActivity extends AppCompatActivity {
         }
     }
 
+    public void executeSuggestionOne(View view) {
+        // Get the button text
+        if (suggestions == null || suggestions.size() != 3) return;
+
+        String buttonText = suggestions.get(0).getContent();
+
+        // Create a full-screen TextView
+        showBlocking(buttonText);
+
+    }
+
+    public void executeSuggestionTwo(View view) {
+        // Get the button text
+        if (suggestions == null || suggestions.size() != 3) return;
+
+        String buttonText = suggestions.get(1).getContent();
+
+        // Create a full-screen TextView
+        showBlocking(buttonText);
+
+    }
+
+    public void executeSuggestionThree(View view) {
+        // Get the button text
+        if (suggestions == null || suggestions.size() != 3) return;
+
+        String buttonText = suggestions.get(2).getContent();
+
+        // Create a full-screen TextView
+        showBlocking(buttonText);
+    }
+
+    private void showBlocking(String buttonText) {
+        blockingView = new TextView(this);
+        blockingView.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+        blockingView.setBackgroundColor(Color.parseColor("#AA000000")); // Semi-transparent black background
+        blockingView.setText(buttonText);
+        blockingView.setTextColor(Color.WHITE);
+        blockingView.setTextSize(30);
+        blockingView.setGravity(android.view.Gravity.CENTER);
+
+        // Add the view to the root layout
+        ((android.widget.FrameLayout) findViewById(android.R.id.content)).addView(blockingView);
+
+        // Remove the view after 10 seconds
+        new Handler().postDelayed(this::removeBlockingView, 10000);
+    }
 }
