@@ -6,15 +6,11 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
@@ -22,12 +18,7 @@ import edu.northeastern.group2final.suggestion.view.LLMViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
-import com.kienht.bubblepicker.BubblePickerListener;
-import com.kienht.bubblepicker.adapter.BubblePickerAdapter;
-import com.kienht.bubblepicker.model.PickerItem;
-import com.kienht.bubblepicker.rendering.BubblePicker;
 
 public class SuggestionsActivity extends AppCompatActivity {
 
@@ -66,8 +57,7 @@ public class SuggestionsActivity extends AppCompatActivity {
                 LLMResponse.Choice firstChoice = llmResponse.getChoices().get(0);
                 if (firstChoice != null && firstChoice.getMessage() != null) {
                     suggestions = parseSuggestions(firstChoice.getMessage().getContent());
-                    System.out.println(suggestions.size());
-//                    textView.setText(firstChoice.getMessage().getContent());
+                    textView.setText("Pick a Suggestion!");
                     presentSuggestions();
                 } else {
                     textView.setText("No content available");

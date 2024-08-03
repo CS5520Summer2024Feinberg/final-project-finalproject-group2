@@ -64,5 +64,4 @@ dependencies {
 //    implementation("com.github.igalata:Bubble-Picker:v0.2.4")
     // Solving Duplicate Class Error
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
-    implementation("com.github.hantrungkien:Bubble-Picker:v1.0.5.2")
 }
