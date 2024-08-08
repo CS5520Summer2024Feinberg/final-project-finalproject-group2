@@ -16,4 +16,5 @@
     <string name="sign_in_with_email">Sign Up with Email</string>
     <string name="sign_in_with_google">Sign Up with Google</string>
     <string name="choose_a_register_method">Choose Sign Up Method</string>
+    <string name="title_activity_photo_sharing">PhotoSharingActivity</string>
 </resources>

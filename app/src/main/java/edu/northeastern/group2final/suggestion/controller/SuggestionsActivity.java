@@ -13,11 +13,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import edu.northeastern.group2final.R;
-import edu.northeastern.group2final.photoSharing.PhotoSharingActivity;
+import edu.northeastern.group2final.photoSharing.view.PhotoSharingActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.view.LLMViewModel;

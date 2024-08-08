@@ -13,7 +13,12 @@
         android:theme="@style/AppTheme"
         tools:targetApi="31">
         <activity
-            android:name=".photoSharing.PhotoSharingActivity"
+            android:name=".photoSharing.view.PhotoSharingActivity"
+            android:exported="false"
+            android:label="@string/title_activity_photo_sharing"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".photoSharing.view.PhotoSharingActivity"
             android:exported="false" />
         <activity
             android:name=".suggestion.controller.SuggestionsActivity"

@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.photoSharing;
+package edu.northeastern.group2final.photoSharing.view;
 
 import android.content.Context;
 import android.net.Uri;
@@ -47,6 +47,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
         }
+    }
+
+    public void setPhotoUris(List<Uri> photoUris) {
+        this.photoUris = photoUris;
     }
 }
 

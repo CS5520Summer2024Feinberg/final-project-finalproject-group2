@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.photoSharing;
+package edu.northeastern.group2final.photoSharing.view;
 
 import android.app.AlertDialog;
 import android.content.ContentResolver;
@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -34,20 +35,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.northeastern.group2final.R;
-
+import edu.northeastern.group2final.photoSharing.controller.PhotoViewModel;
 
 public class PhotoSharingActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 100;
-    private RecyclerView recyclerView;
-    // New constant to save linked list recovery list data
     private static final String PHOTOS_KEY = "photos";
-    private PhotoAdapter photoAdapter;
-    private List<Uri> photoUris;
     private static final int REQUEST_PERMISSION_MEDIA_ACCESS = 2;
     private static final int REQUEST_PERMISSION_WRITE_EXTERNAL = 22;
     private static final int REQUEST_PERMISSION_CAMERA = 3;
     private static final int REQUEST_IMAGE_PICK = 200;
-    // save savedInstanceState as a class member variable
+
+    private RecyclerView recyclerView;
+    private PhotoAdapter photoAdapter;
+    private PhotoViewModel photoViewModel;
     private Bundle savedInstanceState;
 
     @Override
@@ -55,10 +55,31 @@ public class PhotoSharingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_sharing);
 
-        // Store savedInstanceState as a class member variable.
+        // Save savedInstanceState as a class member variable
         this.savedInstanceState = savedInstanceState;
 
-        // Select the permission request method according to the Android version
+        // Initialize ViewModel
+        photoViewModel = new ViewModelProvider(this).get(PhotoViewModel.class);
+
+        // Initialize RecyclerView and Adapter
+        recyclerView = findViewById(R.id.recycler_view);
+        photoAdapter = new PhotoAdapter(new ArrayList<>(), this);
+        recyclerView.setAdapter(photoAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Observe ViewModel's photo data changes
+        photoViewModel.getPhotoUris().observe(this, uris -> {
+            photoAdapter.setPhotoUris(uris);
+            photoAdapter.notifyDataSetChanged();
+        });
+
+        FloatingActionButton fabAddPhoto = findViewById(R.id.fab_add_photo);
+        fabAddPhoto.setOnClickListener(v -> showPhotoSourceDialog());
+
+        FloatingActionButton fabSharePhotos = findViewById(R.id.fab_share_photos);
+        fabSharePhotos.setOnClickListener(v -> sharePhotosToInstagram());
+
+        // Check permissions based on Android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkPermissionsTiramisu(savedInstanceState);
         } else {
@@ -87,38 +108,22 @@ public class PhotoSharingActivity extends AppCompatActivity {
     }
 
     private void initializeComponents(Bundle savedInstanceState) {
-
-        photoUris = new ArrayList<>();
         if (savedInstanceState != null) {
-            // Recover list data
-            photoUris = savedInstanceState.getParcelableArrayList(PHOTOS_KEY);
+            // Recover list data from ViewModel
+            photoViewModel.getPhotoUris().getValue().addAll(
+                    savedInstanceState.getParcelableArrayList(PHOTOS_KEY)
+            );
         }
-        photoAdapter = new PhotoAdapter(photoUris, this);
 
+        // Setup RecyclerView with updated data from ViewModel
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setAdapter(photoAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        FloatingActionButton fabAddPhoto = findViewById(R.id.fab_add_photo);
-        fabAddPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPhotoSourceDialog();
-            }
-        });
-
-        FloatingActionButton fabSharePhotos = findViewById(R.id.fab_share_photos);
-        fabSharePhotos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sharePhotosToInstagram();
-            }
-        });
-
-        //Specify what action a specific gesture performs, in this case swiping right or left deletes the entry
+        // Setup swiping action to delete items
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 return false;
             }
 
@@ -126,10 +131,7 @@ public class PhotoSharingActivity extends AppCompatActivity {
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 Toast.makeText(PhotoSharingActivity.this, "Delete an item", Toast.LENGTH_SHORT).show();
                 int position = viewHolder.getLayoutPosition();
-                photoUris.remove(position);
-
-                photoAdapter.notifyItemRemoved(position);
-
+                photoViewModel.removePhoto(position);
             }
         });
         itemTouchHelper.attachToRecyclerView(recyclerView);
@@ -140,7 +142,7 @@ public class PhotoSharingActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // Save the list of links to the Bundle
-        outState.putParcelableArrayList(PHOTOS_KEY, new ArrayList<>(photoUris));
+        outState.putParcelableArrayList(PHOTOS_KEY, new ArrayList<>(photoViewModel.getPhotoUris().getValue()));
     }
 
     private void showPhotoSourceDialog() {
@@ -173,7 +175,6 @@ public class PhotoSharingActivity extends AppCompatActivity {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
         startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
     }
 
@@ -189,8 +190,7 @@ public class PhotoSharingActivity extends AppCompatActivity {
                 if (imageBitmap != null) {
                     Log.d("PhotoSharingActivity", "Image Bitmap created");
                     Uri imageUri = saveImageToExternalStorage(imageBitmap);
-                    photoUris.add(imageUri);
-                    photoAdapter.notifyItemInserted(photoUris.size() - 1);
+                    photoViewModel.addPhoto(imageUri);
                 } else {
                     Log.d("PhotoSharingActivity", "Image Bitmap is null");
                     Toast.makeText(this, "Image capture failed", Toast.LENGTH_SHORT).show();
@@ -204,8 +204,7 @@ public class PhotoSharingActivity extends AppCompatActivity {
             if (data != null) {
                 Uri selectedImageUri = data.getData();
                 if (selectedImageUri != null) {
-                    photoUris.add(selectedImageUri);
-                    photoAdapter.notifyItemInserted(photoUris.size() - 1);
+                    photoViewModel.addPhoto(selectedImageUri);
                 } else {
                     Log.d("PhotoSharingActivity", "Selected image URI is null");
                     Toast.makeText(this, "Image selection failed", Toast.LENGTH_SHORT).show();
@@ -250,66 +249,43 @@ public class PhotoSharingActivity extends AppCompatActivity {
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
 
         ContentResolver resolver = getContentResolver();
-        Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-        if (uri != null) {
-            try (OutputStream outputStream = resolver.openOutputStream(uri)) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        if (imageUri != null) {
+            try (OutputStream outputStream = resolver.openOutputStream(imageUri)) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                Log.d("PhotoSharingActivity", "Image saved to external storage with URI: " + imageUri.toString());
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("PhotoSharingActivity", "Failed to save image", e);
+                return null;
             }
         }
 
-        return uri;
-    }
-
-    private void showConfirmationDialog(Uri imageUri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        ImageView imageView = new ImageView(this);
-        imageView.setImageURI(imageUri);
-
-        builder.setView(imageView)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        photoUris.add(imageUri);
-                        photoAdapter.notifyItemInserted(photoUris.size() - 1);
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dispatchTakePictureIntent();
-                    }
-                });
-        builder.create().show();
+        return imageUri;
     }
 
     private void sharePhotosToInstagram() {
-        if (photoUris.isEmpty()) {
+        List<Uri> photoUris = photoViewModel.getPhotoUris().getValue();
+
+        if (photoUris == null || photoUris.isEmpty()) {
             Toast.makeText(this, "No photos to share", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, new ArrayList<>(photoUris));
         shareIntent.setType("image/*");
-
-        ArrayList<Uri> uris = new ArrayList<>(photoUris);
-        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
         shareIntent.setPackage("com.instagram.android");
 
-        startActivity(Intent.createChooser(shareIntent, "Share photos"));
-
-    }
-
-    private boolean isInstagramInstalled() {
-        PackageManager pm = getPackageManager();
-        try {
-            pm.getPackageInfo("com.instagram.android", PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
+        // getPackageManager()
+        if (true) {
+            startActivity(Intent.createChooser(shareIntent, "Share Photos"));
+        } else {
+            Toast.makeText(this, "Instagram is not installed", Toast.LENGTH_SHORT).show();
         }
     }
 }
+
 
 
