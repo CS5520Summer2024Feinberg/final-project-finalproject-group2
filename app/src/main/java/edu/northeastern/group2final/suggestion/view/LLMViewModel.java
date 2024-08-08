@@ -5,18 +5,17 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import edu.northeastern.group2final.suggestion.model.Message;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.northeastern.group2final.suggestion.model.ChatRequest;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
+import edu.northeastern.group2final.suggestion.model.Message;
 import edu.northeastern.group2final.suggestion.serviceapi.LLMApiService;
 import edu.northeastern.group2final.suggestion.serviceapi.RetrofitClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LLMViewModel extends ViewModel {
     private MutableLiveData<LLMResponse> responseLiveData = new MutableLiveData<>();

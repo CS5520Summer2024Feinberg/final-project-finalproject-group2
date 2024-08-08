@@ -43,6 +43,9 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.ui.auth)
 
+    // firestore
+    implementation("com.google.firebase:firebase-firestore:24.4.1")
+
     // navigation
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
