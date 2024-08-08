@@ -1,5 +1,6 @@
 package edu.northeastern.group2final.suggestion.controller;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,10 +9,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.photoSharing.view.PhotoSharingActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.view.LLMViewModel;
@@ -171,5 +174,8 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         // Remove the view after 10 seconds
         new Handler().postDelayed(this::removeBlockingView, 10000);
+
+        Intent intent = new Intent(this, PhotoSharingActivity.class);
+        startActivity(intent);
     }
 }
