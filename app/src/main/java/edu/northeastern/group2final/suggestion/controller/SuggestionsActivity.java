@@ -1,5 +1,7 @@
 package edu.northeastern.group2final.suggestion.controller;
 
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,13 +13,16 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import edu.northeastern.group2final.R;
-import edu.northeastern.group2final.suggestion.model.LLMResponse;
-import edu.northeastern.group2final.suggestion.model.Suggestion;
-import edu.northeastern.group2final.suggestion.view.LLMViewModel;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.onboarding.controller.MainActivity;
+import edu.northeastern.group2final.suggestion.model.LLMResponse;
+import edu.northeastern.group2final.suggestion.model.Suggestion;
+import edu.northeastern.group2final.suggestion.view.LLMViewModel;
 
 
 public class SuggestionsActivity extends AppCompatActivity {
@@ -171,5 +176,33 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         // Remove the view after 10 seconds
         new Handler().postDelayed(this::removeBlockingView, 10000);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        showLogoutConfirmationDialog();
+    }
+    private void showLogoutConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Perform logout
+                    logout();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    // Dismiss the dialog and continue
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
