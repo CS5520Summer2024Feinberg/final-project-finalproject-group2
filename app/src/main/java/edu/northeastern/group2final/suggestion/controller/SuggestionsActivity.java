@@ -1,10 +1,12 @@
 package edu.northeastern.group2final.suggestion.controller;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -14,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,6 +136,7 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         String buttonText = suggestions.get(0).getContent();
 
+        saveSuggestionToDB(0);
         // Create a full-screen TextView
         showBlocking(buttonText);
 
@@ -144,6 +148,8 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         String buttonText = suggestions.get(1).getContent();
 
+        saveSuggestionToDB(1);
+
         // Create a full-screen TextView
         showBlocking(buttonText);
 
@@ -154,6 +160,8 @@ public class SuggestionsActivity extends AppCompatActivity {
         if (suggestions == null || suggestions.size() != 3) return;
 
         String buttonText = suggestions.get(2).getContent();
+
+        saveSuggestionToDB(2);
 
         // Create a full-screen TextView
         showBlocking(buttonText);
@@ -178,9 +186,29 @@ public class SuggestionsActivity extends AppCompatActivity {
         new Handler().postDelayed(this::removeBlockingView, 10000);
     }
 
+    private void saveSuggestionToDB(int index) {
+        if (suggestions == null || suggestions.size() < 1) return;
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (currentUser == null) {
+            Log.d("SuggestionsActivity", "User not logged in.");
+            return;
+        }
+
+        Suggestion selectedSuggestion = suggestions.get(index);
+        Suggestion suggestionToSave = new Suggestion(
+                currentUser.getUid(),
+                selectedSuggestion.getPrompt(),
+                selectedSuggestion.getContent()
+        );
+        viewModel.saveSuggestion(suggestionToSave);
+        Log.d("SuggestionsActivity", "Suggestion saved to database.");
+    }
+
+    @SuppressLint("MissingSuperCall")
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         showLogoutConfirmationDialog();
     }
     private void showLogoutConfirmationDialog() {
