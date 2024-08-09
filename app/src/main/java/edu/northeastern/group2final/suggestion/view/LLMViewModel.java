@@ -8,9 +8,11 @@ import androidx.lifecycle.ViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.northeastern.group2final.repository.SuggestionRepository;
 import edu.northeastern.group2final.suggestion.model.ChatRequest;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Message;
+import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.serviceapi.LLMApiService;
 import edu.northeastern.group2final.suggestion.serviceapi.RetrofitClient;
 import retrofit2.Call;
@@ -19,6 +21,22 @@ import retrofit2.Response;
 
 public class LLMViewModel extends ViewModel {
     private MutableLiveData<LLMResponse> responseLiveData = new MutableLiveData<>();
+    private SuggestionRepository suggestionRepository;
+
+    public LLMViewModel() {
+        suggestionRepository = new SuggestionRepository();
+    }
+
+    public void saveSuggestion(Suggestion suggestion) {
+        suggestionRepository.saveSuggestion(suggestion);
+    }
+
+    public void getSuggestionsForUser(String userId, SuggestionRepository.OnSuggestionsLoadedListener listener) {
+        suggestionRepository.getSuggestionsForUser(userId, listener);
+    }
+    public void getSuggestionsForPastWeek(String userId, SuggestionRepository.OnSuggestionsLoadedListener listener) {
+        suggestionRepository.getSuggestionsForPastWeek(userId, listener);
+    }
 
     public LiveData<LLMResponse> getResponseLiveData() {
         return responseLiveData;
