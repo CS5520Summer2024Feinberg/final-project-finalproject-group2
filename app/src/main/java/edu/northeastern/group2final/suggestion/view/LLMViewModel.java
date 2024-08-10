@@ -31,12 +31,6 @@ public class LLMViewModel extends ViewModel {
         suggestionRepository.saveSuggestion(suggestion);
     }
 
-    public void getSuggestionsForUser(String userId, SuggestionRepository.OnSuggestionsLoadedListener listener) {
-        suggestionRepository.getSuggestionsForUser(userId, listener);
-    }
-    public void getSuggestionsForPastWeek(String userId, SuggestionRepository.OnSuggestionsLoadedListener listener) {
-        suggestionRepository.getSuggestionsForPastWeek(userId, listener);
-    }
 
     public LiveData<LLMResponse> getResponseLiveData() {
         return responseLiveData;

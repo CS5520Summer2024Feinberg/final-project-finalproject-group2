@@ -40,7 +40,6 @@ public class LoginViewModel extends ViewModel {
                         // Sign in success
                         FirebaseUser user = auth.getCurrentUser();
                         if (user != null) {
-                            Log.d("Firestore", "Login successful, creating user document");
                             firestoreRepository.createUserDocument(user)
                                     .addOnSuccessListener(aVoid -> {
                                         // save to
