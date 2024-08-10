@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.overview.OverviewActivity;
 import edu.northeastern.group2final.onboarding.controller.MainActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
@@ -42,12 +44,17 @@ public class SuggestionsActivity extends AppCompatActivity {
     Button s3ContentButton;
     List<Suggestion> suggestions;
     TextView blockingView;
+    ImageView detailsIv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_suggestions);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         textView = findViewById(R.id.textView);
         s1TitleTextView = findViewById(R.id.s1_title);
@@ -57,6 +64,10 @@ public class SuggestionsActivity extends AppCompatActivity {
         s1ContentButton = findViewById(R.id.s1_content);
         s2ContentButton = findViewById(R.id.s2_content);
         s3ContentButton = findViewById(R.id.s3_content);
+
+        detailsIv = findViewById(R.id.details);
+        detailsIv.setOnClickListener(v ->
+                startActivity(new Intent(SuggestionsActivity.this, OverviewActivity.class)));
 
         viewModel = new ViewModelProvider(this).get(LLMViewModel.class);
 
