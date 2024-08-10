@@ -1,4 +1,4 @@
-package edu.northeastern.group2final;
+package edu.northeastern.group2final.overview;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 
 public class SuggestionAdapter extends RecyclerView.Adapter<SuggestionAdapter.SuggestionViewHolder> {
