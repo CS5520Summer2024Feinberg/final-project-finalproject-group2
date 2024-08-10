@@ -12,6 +12,7 @@ import java.util.List;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 
 public class SuggestionRepository {
+    private static final String TAG = "SuggestionRepository";
     private FirebaseFirestore db;
     public SuggestionRepository() {db = FirebaseFirestore.getInstance();}
 
@@ -24,14 +25,31 @@ public class SuggestionRepository {
                 .addOnFailureListener(e -> {});
     }
 
-    public void getSuggestionsForPastWeek(String userId, OnSuggestionsLoadedListener listener) {
+    public void getSelectedSuggestionsForPastWeek(String userId, OnSuggestionsLoadedListener listener) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.WEEK_OF_YEAR, -1);
         Date oneWeekAgo = cal.getTime();
 
         db.collection("suggestions")
                 .whereEqualTo("userId", userId)
+                .whereEqualTo("selected", true)  // Assuming you have a 'selected' field
                 .whereGreaterThan("createdAt", oneWeekAgo)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Suggestion> suggestions = queryDocumentSnapshots.toObjects(Suggestion.class);
+                    Log.d(TAG, "Loaded " + suggestions.size() + " selected suggestions from the past week");
+                    listener.onSuggestionsLoaded(suggestions);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting selected suggestions", e);
+                    listener.onError(e.getMessage());
+                });
+    }
+
+    public void getAllSuggestionsForUser(String userId, OnSuggestionsLoadedListener listener) {
+        db.collection("suggestions")
+                .whereEqualTo("userId", userId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -39,22 +57,7 @@ public class SuggestionRepository {
                     listener.onSuggestionsLoaded(suggestions);
                 })
                 .addOnFailureListener(e -> {
-                    listener.onError(e.getMessage());
-                });
-
-        Log.d("SuggestionRepository", "getSuggestionsForPastWeek called");
-    }
-
-    public void getSuggestionsForUser(String userId, OnSuggestionsLoadedListener listener) {
-        db.collection("suggestions")
-                .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Suggestion> suggestions = queryDocumentSnapshots.toObjects(Suggestion.class);
-                    listener.onSuggestionsLoaded(suggestions);
-                })
-                .addOnFailureListener(e -> {
+                    Log.e("SuggestionRepository", e.getMessage());
                     listener.onError(e.getMessage());
                 });
     }

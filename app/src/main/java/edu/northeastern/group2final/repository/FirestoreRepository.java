@@ -25,10 +25,8 @@ public class FirestoreRepository {
         userMap.put("email", user.getEmail());
         userMap.put("displayName", user.getDisplayName());
 
-        Log.d("Firestore", "Attempting to create/update user doc for UID:" + user.getUid());
-
         return db.collection("users").document(user.getUid()).set(userMap)
-                .addOnSuccessListener(aVoid -> Log.d("Firestore", "User document successfully created/updated"))
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Current user name:" + auth.getCurrentUser().getDisplayName()))
                 .addOnFailureListener(e -> Log.e("Firestore", "Error creating user document", e));
 
     }

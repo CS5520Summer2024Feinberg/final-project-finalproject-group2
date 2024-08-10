@@ -7,13 +7,14 @@ import edu.northeastern.group2final.suggestion.view.LLMViewModel;
 
 public class SuggestionManager {
     private LLMViewModel viewModel;
+    private SuggestionRepository suggestionRepository;
 
     public SuggestionManager(LLMViewModel viewModel) {
         this.viewModel = viewModel;
+        this.suggestionRepository = new SuggestionRepository();
     }
-
-    public void getPastWeekSuggestions(String userId, OnPastWeekSuggestionsLoadedListener listener) {
-        viewModel.getSuggestionsForPastWeek(userId, new SuggestionRepository.OnSuggestionsLoadedListener() {
+    public void getAllSuggestionsForUser(String userId, OnSuggestionsLoadedListener listener) {
+        suggestionRepository.getAllSuggestionsForUser(userId, new SuggestionRepository.OnSuggestionsLoadedListener() {
             @Override
             public void onSuggestionsLoaded(List<Suggestion> suggestions) {
                 listener.onSuggestionsLoaded(suggestions);
@@ -26,7 +27,21 @@ public class SuggestionManager {
         });
     }
 
-    public interface OnPastWeekSuggestionsLoadedListener {
+    public void getSelectedSuggestionsForPastWeek(String userId, OnSuggestionsLoadedListener listener) {
+        suggestionRepository.getSelectedSuggestionsForPastWeek(userId, new SuggestionRepository.OnSuggestionsLoadedListener() {
+            @Override
+            public void onSuggestionsLoaded(List<Suggestion> suggestions) {
+                listener.onSuggestionsLoaded(suggestions);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                listener.onError(errorMessage);
+            }
+        });
+    }
+
+    public interface OnSuggestionsLoadedListener {
         void onSuggestionsLoaded(List<Suggestion> suggestions);
         void onError(String errorMessage);
     }
