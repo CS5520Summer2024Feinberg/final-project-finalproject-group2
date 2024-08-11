@@ -1,13 +1,14 @@
 package edu.northeastern.group2final.suggestion.serviceapi;
 
+import java.io.IOException;
+
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import okhttp3.logging.HttpLoggingInterceptor;
-import java.io.IOException;
 
 
 public class RetrofitClient {

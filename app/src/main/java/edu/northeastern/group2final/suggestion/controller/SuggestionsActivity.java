@@ -1,11 +1,15 @@
 package edu.northeastern.group2final.suggestion.controller;
 
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -13,36 +17,47 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.northeastern.group2final.R;
+import edu.northeastern.group2final.application.GetUpApplication;
+import edu.northeastern.group2final.onboarding.controller.MainActivity;
+import edu.northeastern.group2final.overview.controller.OverviewActivity;
+import edu.northeastern.group2final.repository.SuggestionRepository;
 import edu.northeastern.group2final.photoSharing.view.PhotoSharingActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.view.LLMViewModel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class SuggestionsActivity extends AppCompatActivity {
-
-    private LLMViewModel viewModel;
-
     TextView textView;
     TextView s1TitleTextView;
     TextView s2TitleTextView;
     TextView s3TitleTextView;
-
     Button s1ContentButton;
     Button s2ContentButton;
     Button s3ContentButton;
     List<Suggestion> suggestions;
     TextView blockingView;
+    ImageView detailsIv;
+    private LLMViewModel viewModel;
+    private SuggestionRepository suggestionRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_suggestions);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         textView = findViewById(R.id.textView);
         s1TitleTextView = findViewById(R.id.s1_title);
@@ -53,7 +68,19 @@ public class SuggestionsActivity extends AppCompatActivity {
         s2ContentButton = findViewById(R.id.s2_content);
         s3ContentButton = findViewById(R.id.s3_content);
 
+        detailsIv = findViewById(R.id.details);
+        detailsIv.setOnClickListener(v ->
+                startActivity(new Intent(SuggestionsActivity.this, OverviewActivity.class)));
+
         viewModel = new ViewModelProvider(this).get(LLMViewModel.class);
+        FirebaseFirestore firestore = GetUpApplication.getInstance().getFirestore();
+        suggestionRepository = new SuggestionRepository(firestore);
+
+        String userId = GetUpApplication
+                .getInstance()
+                .getFirebaseAuth()
+                .getCurrentUser()
+                .getUid();
 
         viewModel.getResponseLiveData().observe(this, llmResponse -> {
             if (llmResponse != null && llmResponse.getChoices() != null && !llmResponse.getChoices().isEmpty()) {
@@ -71,6 +98,9 @@ public class SuggestionsActivity extends AppCompatActivity {
         });
 
         viewModel.sendRequestToOpenAI("I have procrastination in the morning when I wake up; recommend me 3 good/fun activities that I can finish in 10 mins at home as my morning routine to share in social media. All suggestions should be in the form of ''short summary - detail''");
+
+        viewModel.sendAllSuggestionsToOpenAI(userId,
+                "Based on all of the suggestions, recommend 3 new activities that align with the user's interests. Format each suggestion as 'short summary - detail'.");
     }
 
     private List<Suggestion> parseSuggestions(String suggestionsText) {
@@ -131,6 +161,7 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         String buttonText = suggestions.get(0).getContent();
 
+        saveSuggestionToDB(0);
         // Create a full-screen TextView
         showBlocking(buttonText);
 
@@ -142,6 +173,8 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         String buttonText = suggestions.get(1).getContent();
 
+        saveSuggestionToDB(1);
+
         // Create a full-screen TextView
         showBlocking(buttonText);
 
@@ -152,6 +185,8 @@ public class SuggestionsActivity extends AppCompatActivity {
         if (suggestions == null || suggestions.size() != 3) return;
 
         String buttonText = suggestions.get(2).getContent();
+
+        saveSuggestionToDB(2);
 
         // Create a full-screen TextView
         showBlocking(buttonText);
@@ -177,5 +212,54 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, PhotoSharingActivity.class);
         startActivity(intent);
+    }
+
+    private void saveSuggestionToDB(int index) {
+        if (suggestions == null || suggestions.size() < 1) return;
+
+        FirebaseUser currentUser = GetUpApplication.getInstance().getFirebaseAuth().getCurrentUser();
+
+        if (currentUser == null) {
+            Log.d("SuggestionsActivity", "User not logged in.");
+            return;
+        }
+
+        Suggestion selectedSuggestion = suggestions.get(index);
+        Suggestion suggestionToSave = new Suggestion(
+                currentUser.getUid(),
+                selectedSuggestion.getPrompt(),
+                selectedSuggestion.getContent()
+        );
+        viewModel.saveSuggestion(suggestionToSave);
+        Log.d("SuggestionsActivity", "Suggestion saved to database.");
+    }
+
+    @SuppressLint("MissingSuperCall")
+    @Override
+    public void onBackPressed() {
+        showLogoutConfirmationDialog();
+    }
+
+    private void showLogoutConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Perform logout
+                    logout();
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    // Dismiss the dialog and continue
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

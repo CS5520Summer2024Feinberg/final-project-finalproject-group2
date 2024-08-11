@@ -40,6 +40,10 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         return photoUris.size();
     }
 
+    public void setPhotoUris(List<Uri> photoUris) {
+        this.photoUris = photoUris;
+    }
+
     public static class PhotoViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
 
@@ -47,10 +51,6 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
         }
-    }
-
-    public void setPhotoUris(List<Uri> photoUris) {
-        this.photoUris = photoUris;
     }
 }
 

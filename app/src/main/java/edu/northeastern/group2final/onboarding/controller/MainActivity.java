@@ -1,52 +1,54 @@
 package edu.northeastern.group2final.onboarding.controller;
 
 import android.os.Bundle;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
-import java.util.ArrayList;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import edu.northeastern.group2final.R;
 
 public class MainActivity extends AppCompatActivity {
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ViewPager viewPager = findViewById(R.id.viewPager);
+        ViewPager2 viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
 
-        AuthenticationPagerAdapter pagerAdapter = new AuthenticationPagerAdapter(getSupportFragmentManager());
-        pagerAdapter.addFragment(new LoginFragment());
-        pagerAdapter.addFragment(new SignUpFragment());
+        AuthenticationPagerAdapter pagerAdapter = new AuthenticationPagerAdapter(this);
         viewPager.setAdapter(pagerAdapter);
 
+        new TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> tab.setText(position == 0 ? "Login" : "Sign Up")
+        ).attach();
     }
 
-    class AuthenticationPagerAdapter extends FragmentPagerAdapter {
-        private ArrayList<Fragment> fragmentList = new ArrayList<>();
+    private static class AuthenticationPagerAdapter extends FragmentStateAdapter {
+        public AuthenticationPagerAdapter(FragmentActivity fragmentActivity) {
+            super(fragmentActivity);
+        }
 
-        public AuthenticationPagerAdapter(FragmentManager fm) {
-            super(fm);
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            Log.d("MainActivity", "Creating fragment for position: " + position);
+            return position == 0 ? new LoginFragment() : new SignUpFragment();
         }
 
         @Override
-        public Fragment getItem(int i) {
-            return fragmentList.get(i);
-        }
-
-        @Override
-        public int getCount() {
-            return fragmentList.size();
-        }
-
-        void addFragment(Fragment fragment) {
-            fragmentList.add(fragment);
+        public int getItemCount() {
+            return 2;
         }
     }
 }

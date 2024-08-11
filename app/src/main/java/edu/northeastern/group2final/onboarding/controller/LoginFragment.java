@@ -13,27 +13,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.snackbar.Snackbar;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.databinding.FragmentLoginBinding;
-import edu.northeastern.group2final.onboarding.util.AuthenticationState;
-import edu.northeastern.group2final.onboarding.viewmodel.LoginViewModel;
+import edu.northeastern.group2final.onboarding.util.AuthEvent;
+import edu.northeastern.group2final.onboarding.viewmodel.AuthViewModel;
 import edu.northeastern.group2final.suggestion.controller.SuggestionsActivity;
 
 public class LoginFragment extends Fragment {
-    private static final int SIGN_IN_RESULT_CODE = 666;
-    private static final String TAG = "LoginFragment";
-    private static LoginViewModel viewModel;
+    private AuthViewModel viewModel;
     private FragmentLoginBinding binding;
+
     public LoginFragment() {
         // Required empty public constructor
-    }
-    public static LoginFragment newInstance(String param1, String param2) {
-        LoginFragment fragment = new LoginFragment();
-        return fragment;
     }
 
     @Override
@@ -42,87 +34,52 @@ public class LoginFragment extends Fragment {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_login, container, false);
         return binding.getRoot();
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
-        observeAuthenticationState();
+        viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        binding.btnLogin.setOnClickListener( v -> {
-            String email = binding.etEmail.getText().toString().trim();
-            String password = binding.etPassword.getText().toString().trim();
+        viewModel.getAuthEvent().observe(getViewLifecycleOwner(), this::handleAuthState);
+        viewModel.getAuthResultLiveData().observe(getViewLifecycleOwner(), this::showLoginResult);
 
-            if (!email.isEmpty() && !password.isEmpty()) {
-                logIn(email, password);
-            } else {
-                Snackbar.make(binding.loginConstraintLayout, "Please enter email and password",
+        binding.btnLogin.setOnClickListener(v -> attemptLogin());
+    }
+
+    private void handleAuthState(AuthEvent event) {
+        switch (event.getType()) {
+            case SIGN_IN_SUCCESS:
+                navigateToSuggestionsActivity();
+                break;
+
+            case SIGN_UP_SUCCESS:
+                Snackbar.make(binding.loginConstraintLayout,
+                        "New account created. Welcome, " + (event.getDisplayName() != null ? event.getDisplayName() : "User"),
                         Snackbar.LENGTH_SHORT).show();
-            }
-        });
+                navigateToSuggestionsActivity();
+                break;
+        }
     }
 
-    private void logIn(String email, String password) {
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(requireActivity(), task -> {
-                    if (task.isSuccessful()) {
-                        // Sign in success
-                        viewModel.getAuthenticationStateLiveData().observe(
-                                getViewLifecycleOwner(), authenticationState -> {
-                                    if (authenticationState == AuthenticationState.AUTHENTICATED) {
-                                        String loggedInMessage = viewModel.getGreetingMessage();
-                                        Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
-                                        startActivity(intent);
-                                    } else {
-                                        Snackbar.make(binding.loginConstraintLayout, "Authentication Failed.",
-                                                Snackbar.LENGTH_SHORT).show();
-                                    }
-                                }
-                        );
-                    } else {
-                        // if sign in failed
-                        Exception exception = task.getException();
-                        String errorMessage = "Authentication Failed.";
-                        // if password is wrong
-                        if (exception instanceof FirebaseAuthInvalidCredentialsException) {
-                            errorMessage = "Incorrect password. Please try again.";
-                            // if user doesn't exist
-                        } else if (exception instanceof FirebaseAuthInvalidUserException) {
-                            errorMessage = "No user found with this email. Please check and try again.";
-                        }
-                        binding.tvErrorMessage.setText(errorMessage);
-                        binding.tvErrorMessage.setVisibility(View.VISIBLE);
-                    }
-                });
+    private void navigateToSuggestionsActivity() {
+        Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
+        startActivity(intent);
+        requireActivity().finish();
     }
 
-    private void observeAuthenticationState() {
-        viewModel.getAuthenticationStateLiveData().observe(
-                getViewLifecycleOwner(), authenticationState -> {
-                    switch (authenticationState) {
-                        case AUTHENTICATED:
-                            Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
-                            startActivity(intent);
-                            break;
-                        case UNAUTHENTICATED:
-                            binding.btnLogin.setOnClickListener( v -> {
-                                String email = binding.etEmail.getText().toString().trim();
-                                String password = binding.etPassword.getText().toString().trim();
+    private void showLoginResult(String result) {
+        Snackbar.make(binding.loginConstraintLayout, result, Snackbar.LENGTH_SHORT).show();
+    }
 
-                                if (!email.isEmpty() && !password.isEmpty()) {
-                                    logIn(email, password);
-                                } else {
-                                    Snackbar.make(binding.loginConstraintLayout, "Please enter email and password",
-                                            Snackbar.LENGTH_SHORT).show();
-                                }
-                            });
-                            break;
-                        case INVALID_AUTHENTICATION:
-                            Snackbar.make(binding.loginConstraintLayout, "Invalid credentials. Please try again.",
-                                    Snackbar.LENGTH_SHORT).show();
-                            break;
-                    }
-                }
-        );
+    private void attemptLogin() {
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
+
+        if (!email.isEmpty() && !password.isEmpty()) {
+            viewModel.login(email, password);
+        } else {
+            Snackbar.make(binding.loginConstraintLayout, "Please enter email and password", Snackbar.LENGTH_SHORT).show();
+        }
     }
 }
