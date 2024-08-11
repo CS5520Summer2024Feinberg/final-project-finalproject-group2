@@ -16,16 +16,17 @@
             android:id="@+id/suggestionDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:layout_marginTop="8dp"
             android:textColor="#666666"
-            android:layout_marginTop="8dp"/>
+            android:textSize="12sp" />
+
         <TextView
             android:id="@+id/suggestionContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
             android:layout_marginTop="8dp"
-            android:textColor="#333333"/>
+            android:textColor="#333333"
+            android:textSize="16sp" />
 
     </LinearLayout>
 
