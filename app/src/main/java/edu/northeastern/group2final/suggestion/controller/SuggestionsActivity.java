@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -28,6 +29,7 @@ import edu.northeastern.group2final.application.GetUpApplication;
 import edu.northeastern.group2final.onboarding.controller.MainActivity;
 import edu.northeastern.group2final.overview.controller.OverviewActivity;
 import edu.northeastern.group2final.repository.SuggestionRepository;
+import edu.northeastern.group2final.photoSharing.view.PhotoSharingActivity;
 import edu.northeastern.group2final.suggestion.model.LLMResponse;
 import edu.northeastern.group2final.suggestion.model.Suggestion;
 import edu.northeastern.group2final.suggestion.view.LLMViewModel;
@@ -207,6 +209,9 @@ public class SuggestionsActivity extends AppCompatActivity {
 
         // Remove the view after 10 seconds
         new Handler().postDelayed(this::removeBlockingView, 10000);
+
+        Intent intent = new Intent(this, PhotoSharingActivity.class);
+        startActivity(intent);
     }
 
     private void saveSuggestionToDB(int index) {
