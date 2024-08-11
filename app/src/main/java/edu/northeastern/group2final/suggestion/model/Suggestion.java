@@ -16,6 +16,7 @@ public class Suggestion {
     public Suggestion() {
 
     }
+
     public Suggestion(String prompt, String content) {
         this.prompt = prompt;
         this.content = content;
@@ -32,22 +33,52 @@ public class Suggestion {
         SimpleDateFormat sdf = new SimpleDateFormat("EEEE MMM-dd-yyyy' Time: 'HH:mm", Locale.getDefault());
         return sdf.format(this.createdAt);
     }
+
     public String getPrompt() {
         return prompt;
     }
+
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
+
     public String getContent() {
         return content;
     }
-    public void setPrompt(String prompt) {this.prompt = prompt;}
+
     public void setContent(String content) {
         this.content = content;
     }
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-    public void setCreatedAt(Date createdAt) {this.createdAt = createdAt;}
-    public Date getCreatedAt() {return createdAt;}
-    public Timestamp getCreatedAtTimestamp() { return new Timestamp(createdAt);}
-    public void setCreatedAtFromTimeStamp(Timestamp timestamp) {this.createdAt = timestamp.toDate();}
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getCreatedAtTimestamp() {
+        return new Timestamp(createdAt);
+    }
+
+    public void setCreatedAtFromTimeStamp(Timestamp timestamp) {
+        this.createdAt = timestamp.toDate();
+    }
 }
