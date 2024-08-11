@@ -2,6 +2,7 @@ package edu.northeastern.group2final.repository;
 
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -14,56 +15,84 @@ import edu.northeastern.group2final.suggestion.model.Suggestion;
 public class SuggestionRepository {
     private static final String TAG = "SuggestionRepository";
     private FirebaseFirestore db;
-    public SuggestionRepository() {db = FirebaseFirestore.getInstance();}
 
-    public void saveSuggestion(Suggestion suggestion) {
-        db.collection("suggestions")
-                .add(suggestion)
-                .addOnSuccessListener(documentReference -> {
-                    suggestion.setId(documentReference.getId());
-                })
-                .addOnFailureListener(e -> {});
+    public SuggestionRepository(FirebaseFirestore fireStore) {
+        db = fireStore;
     }
 
-    public void getSelectedSuggestionsForPastWeek(String userId, OnSuggestionsLoadedListener listener) {
+    public Task<Void> saveSuggestion(Suggestion suggestion) {
+        return db.collection("suggestions")
+                .add(suggestion)
+                .continueWithTask(task -> {
+                    if (task.isSuccessful()) {
+                        suggestion.setId(task.getResult().getId());
+                        Log.d(TAG, "Suggestion saved with ID: " + suggestion.getId());
+                    } else {
+                        Log.e(TAG, "Error saving suggestion", task.getException());
+                    }
+                    return task.getResult().set(suggestion);
+                });
+    }
+
+    //
+    public Task<List<Suggestion>> getSuggestionsForPastWeek(String userId) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.WEEK_OF_YEAR, -1);
         Date oneWeekAgo = cal.getTime();
+        Log.d(TAG, "One week ago: " + oneWeekAgo);
 
-        db.collection("suggestions")
+        return db.collection("suggestions")
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("selected", true)  // Assuming you have a 'selected' field
                 .whereGreaterThan("createdAt", oneWeekAgo)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Suggestion> suggestions = queryDocumentSnapshots.toObjects(Suggestion.class);
-                    Log.d(TAG, "Loaded " + suggestions.size() + " selected suggestions from the past week");
-                    listener.onSuggestionsLoaded(suggestions);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error getting selected suggestions", e);
-                    listener.onError(e.getMessage());
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        List<Suggestion> suggestions = task.getResult().toObjects(Suggestion.class);
+                        Log.d(TAG, "Retrieved " + suggestions.size() + " suggestions for past week");
+                        return suggestions;
+                    } else {
+                        Log.e(TAG, "Error getting suggestions for past week", task.getException());
+                        throw task.getException();
+                    }
                 });
     }
 
-    public void getAllSuggestionsForUser(String userId, OnSuggestionsLoadedListener listener) {
-        db.collection("suggestions")
+
+    public Task<List<Suggestion>> getAllSuggestionsForUser(String userId) {
+        return db.collection("suggestions")
                 .whereEqualTo("userId", userId)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Suggestion> suggestions = queryDocumentSnapshots.toObjects(Suggestion.class);
-                    listener.onSuggestionsLoaded(suggestions);
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("SuggestionRepository", e.getMessage());
-                    listener.onError(e.getMessage());
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        List<Suggestion> suggestions = task.getResult().toObjects(Suggestion.class);
+                        Log.d(TAG, "Retrieved " + suggestions.size() + " suggestions for user");
+                        return suggestions;
+                    } else {
+                        Log.e(TAG, "Error getting all suggestions for user", task.getException());
+                        throw task.getException();
+                    }
                 });
     }
 
-    public interface OnSuggestionsLoadedListener {
-        void onSuggestionsLoaded(List<Suggestion> suggestions);
-        void onError(String errorMessage);
+    public Task<List<Suggestion>> getMostRecentSuggestions(String userId) {
+        return db.collection("suggestions")
+                .whereEqualTo("userId", userId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(5)
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        List<Suggestion> suggestions = task.getResult().toObjects(Suggestion.class);
+                        Log.d(TAG, "Retrieved " + suggestions.size() + " most recent suggestions");
+                        return suggestions;
+                    } else {
+                        Log.e(TAG, "Error getting most recent suggestions", task.getException());
+                        throw task.getException();
+                    }
+                });
+
     }
+
 }

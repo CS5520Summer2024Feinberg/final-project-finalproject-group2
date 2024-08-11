@@ -1,32 +1,39 @@
 package edu.northeastern.group2final.repository;
 
+import android.util.Log;
+
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import edu.northeastern.group2final.entity.User;
 
 public class UserRepository {
+    private static final String TAG = "UserRepository";
     private FirebaseFirestore db;
 
-    public UserRepository() {
-        this.db = FirebaseFirestore.getInstance();
+    public UserRepository(FirebaseFirestore firestore) {
+        this.db = firestore;
     }
 
-    public void getUserData(String uid, OnUserDataLoadedListener listener) {
-        db.collection("users").document(uid)
+    public Task<User> getUserData(String uid) {
+        return db.collection("users").document(uid)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        listener.onUserDataLoaded(user);
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            User user = document.toObject(User.class);
+                            Log.d(TAG, "User data retrieved successfully for UID: " + uid);
+                            return user;
+                        } else {
+                            Log.w(TAG, "No user found for UID: " + uid);
+                            throw new Exception("User not found");
+                        }
                     } else {
-                        listener.onError("User not found");
+                        Log.e(TAG, "Error getting user data", task.getException());
+                        throw task.getException();
                     }
-                })
-                .addOnFailureListener(e -> listener.onError(e.getMessage()));
-    }
-
-    public interface OnUserDataLoadedListener {
-        void onUserDataLoaded(User user);
-        void onError(String errorMessage);
+                });
     }
 }
