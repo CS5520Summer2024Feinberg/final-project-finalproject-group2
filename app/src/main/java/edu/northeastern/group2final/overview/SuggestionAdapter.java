@@ -42,6 +42,11 @@ public class SuggestionAdapter extends RecyclerView.Adapter<SuggestionAdapter.Su
         return suggestions.size();
     }
 
+    public void setSuggestions(List<Suggestion> suggestions) {
+        this.suggestions = suggestions;
+        notifyDataSetChanged();
+    }
+
     class SuggestionViewHolder extends RecyclerView.ViewHolder {
         private TextView suggestionContent;
         private TextView suggestionDate;

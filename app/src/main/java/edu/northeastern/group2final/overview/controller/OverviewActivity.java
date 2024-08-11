@@ -1,4 +1,4 @@
-package edu.northeastern.group2final.overview;
+package edu.northeastern.group2final.overview.controller;
 
 import android.os.Bundle;
 import android.widget.Toast;
@@ -7,24 +7,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import java.util.ArrayList;
 
-import java.util.List;
-
+import edu.northeastern.group2final.application.GetUpApplication;
 import edu.northeastern.group2final.databinding.ActivityOverviewBinding;
-import edu.northeastern.group2final.entity.User;
-import edu.northeastern.group2final.repository.SuggestionManager;
-import edu.northeastern.group2final.repository.UserRepository;
-import edu.northeastern.group2final.suggestion.model.Suggestion;
-import edu.northeastern.group2final.suggestion.view.LLMViewModel;
+import edu.northeastern.group2final.overview.SuggestionAdapter;
+import edu.northeastern.group2final.overview.viewmodel.OverviewViewModel;
 
 public class OverviewActivity extends AppCompatActivity {
     private SuggestionAdapter adapter;
-    private LLMViewModel viewModel;
-    private SuggestionManager suggestionManager;
+    private OverviewViewModel viewModel;
     private ActivityOverviewBinding binding;
-    private UserRepository userRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,59 +26,43 @@ public class OverviewActivity extends AppCompatActivity {
         binding = ActivityOverviewBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        viewModel = new ViewModelProvider(this).get(LLMViewModel.class);
-        suggestionManager = new SuggestionManager(viewModel);
-        userRepository = new UserRepository();
+        GetUpApplication app = (GetUpApplication) getApplication();
 
+        viewModel = new ViewModelProvider(this).get(OverviewViewModel.class);
+
+        setupRecyclerView();
+        setupObservers();
+
+        viewModel.loadUserData();
+        viewModel.loadSuggestions();
+    }
+
+    private void setupRecyclerView() {
         int numberOfColumns = 2;
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(numberOfColumns, StaggeredGridLayoutManager.VERTICAL);
         binding.suggestionsRecyclerView.setLayoutManager(layoutManager);
 
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser != null) {
-            loadUserData(currentUser);
-        }
+        adapter = new SuggestionAdapter(new ArrayList<>());
+        binding.suggestionsRecyclerView.setAdapter(adapter);
     }
 
-    private void loadUserData(FirebaseUser currentUser) {
-        String uid = currentUser.getUid();
-        userRepository.getUserData(uid, new UserRepository.OnUserDataLoadedListener() {
-            @Override
-            public void onUserDataLoaded(User user) {
-                runOnUiThread(() -> {
-                    binding.userDisplayName.setText(user.getDisplayName());
-                    loadSuggestions(uid);
-                });
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                runOnUiThread(() -> {
-                    Toast.makeText(OverviewActivity.this, "Error loading user data: " + errorMessage, Toast.LENGTH_LONG).show();
-                });
+    private void setupObservers() {
+        viewModel.getUserLiveData().observe(this, user -> {
+            if (user != null) {
+                binding.userDisplayName.setText(user.getDisplayName());
             }
         });
-    }
 
-    private void loadSuggestions(String userId) {
-        suggestionManager.getAllSuggestionsForUser(userId, new SuggestionManager.OnSuggestionsLoadedListener() {
-            @Override
-            public void onSuggestionsLoaded(List<Suggestion> suggestions) {
-                runOnUiThread(() -> {
-                    if (suggestions.isEmpty()) {
-                        Toast.makeText(OverviewActivity.this, "No suggestions found", Toast.LENGTH_SHORT).show();
-                    } else {
-                        adapter = new SuggestionAdapter(suggestions);
-                        binding.suggestionsRecyclerView.setAdapter(adapter);
-                    }
-                });
+        viewModel.getSuggestionsLiveData().observe(this, suggestions -> {
+            if (suggestions != null) {
+                adapter.setSuggestions(suggestions);
+                adapter.notifyDataSetChanged();
             }
+        });
 
-            @Override
-            public void onError(String errorMessage) {
-                runOnUiThread(() -> {
-                    Toast.makeText(OverviewActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
-                });
+        viewModel.getErrorLiveData().observe(this, errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
             }
         });
     }
