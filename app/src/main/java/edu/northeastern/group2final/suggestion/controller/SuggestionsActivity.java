@@ -212,10 +212,12 @@ public class SuggestionsActivity extends AppCompatActivity {
         ((android.widget.FrameLayout) findViewById(android.R.id.content)).addView(blockingView);
 
         // Remove the view after 10 seconds
-        new Handler().postDelayed(this::removeBlockingView, 10000);
-
-        Intent intent = new Intent(this, PhotoSharingActivity.class);
-        startActivity(intent);
+        new Handler().postDelayed(() -> {
+            removeBlockingView();
+            // Start the PhotoSharingActivity after 10 seconds
+            Intent intent = new Intent(this, PhotoSharingActivity.class);
+            startActivity(intent);
+        }, 10000);
     }
 
     private void saveSuggestionToDB(int index) {
