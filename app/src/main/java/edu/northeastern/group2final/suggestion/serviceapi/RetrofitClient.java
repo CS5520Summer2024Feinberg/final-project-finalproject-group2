@@ -25,7 +25,7 @@ public class RetrofitClient {
                     public Response intercept(Interceptor.Chain chain) throws IOException {
                         Request originalRequest = chain.request();
                         Request.Builder builder = originalRequest.newBuilder()
-                                .header("Authorization", "Bearer sk-proj-pPmMi2HNnySXL6FUvgzJT3BlbkFJSnNeVvVgB3NcqBUsRdfx")
+                                .header("Authorization", "Bearer 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")
                                 .header("Content-Type", "application/json");
                         Request newRequest = builder.build();
                         return chain.proceed(newRequest);
