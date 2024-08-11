@@ -16,22 +16,16 @@ import com.google.android.material.snackbar.Snackbar;
 
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.databinding.FragmentLoginBinding;
-import edu.northeastern.group2final.onboarding.viewmodel.LoginViewModel;
+import edu.northeastern.group2final.onboarding.util.AuthEvent;
+import edu.northeastern.group2final.onboarding.viewmodel.AuthViewModel;
 import edu.northeastern.group2final.suggestion.controller.SuggestionsActivity;
 
 public class LoginFragment extends Fragment {
-    private static final int SIGN_IN_RESULT_CODE = 666;
-    private static final String TAG = "LoginFragment";
-    private static LoginViewModel viewModel;
+    private AuthViewModel viewModel;
     private FragmentLoginBinding binding;
 
     public LoginFragment() {
         // Required empty public constructor
-    }
-
-    public static LoginFragment newInstance(String param1, String param2) {
-        LoginFragment fragment = new LoginFragment();
-        return fragment;
     }
 
     @Override
@@ -45,50 +39,47 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+        viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        viewModel.getAuthenticationStateLiveData().observe(
-                getViewLifecycleOwner(), authenticationState -> {
-                    switch (authenticationState) {
-                        case AUTHENTICATED:
-                            Snackbar.make(
-                                    binding.loginConstraintLayout,
-                                    viewModel.getGreetingMessage(),
-                                    Snackbar.LENGTH_SHORT).show();
+        viewModel.getAuthEvent().observe(getViewLifecycleOwner(), this::handleAuthState);
+        viewModel.getAuthResultLiveData().observe(getViewLifecycleOwner(), this::showLoginResult);
 
-                            Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
-                            startActivity(intent);
-                            break;
-                        case UNAUTHENTICATED:
-                            binding.btnLogin.setOnClickListener(v -> {
-                                String email = binding.etEmail.getText().toString().trim();
-                                String password = binding.etPassword.getText().toString().trim();
-                                if (!email.isEmpty() && !password.isEmpty()) {
-                                    viewModel.login(email, password);
-                                } else {
-                                    Snackbar.make(binding.loginConstraintLayout, "Please enter email and password",
-                                            Snackbar.LENGTH_SHORT).show();
-                                }
-                            });
-                            break;
-                        case INVALID_AUTHENTICATION:
-                            Snackbar.make(binding.loginConstraintLayout, "Invalid credentials. Please try again.",
-                                    Snackbar.LENGTH_SHORT).show();
-                            break;
-                    }
-                }
-        );
+        binding.btnLogin.setOnClickListener(v -> attemptLogin());
+    }
 
-        binding.btnLogin.setOnClickListener(v -> {
-            String email = binding.etEmail.getText().toString().trim();
-            String password = binding.etPassword.getText().toString().trim();
+    private void handleAuthState(AuthEvent event) {
+        switch (event.getType()) {
+            case SIGN_IN_SUCCESS:
+                navigateToSuggestionsActivity();
+                break;
 
-            if (!email.isEmpty() && !password.isEmpty()) {
-                viewModel.login(email, password);
-            } else {
-                Snackbar.make(binding.loginConstraintLayout, "Please enter email and password",
+            case SIGN_UP_SUCCESS:
+                Snackbar.make(binding.loginConstraintLayout,
+                        "New account created. Welcome, " + (event.getDisplayName() != null ? event.getDisplayName() : "User"),
                         Snackbar.LENGTH_SHORT).show();
-            }
-        });
+                navigateToSuggestionsActivity();
+                break;
+        }
+    }
+
+    private void navigateToSuggestionsActivity() {
+        Intent intent = new Intent(getActivity(), SuggestionsActivity.class);
+        startActivity(intent);
+        requireActivity().finish();
+    }
+
+    private void showLoginResult(String result) {
+        Snackbar.make(binding.loginConstraintLayout, result, Snackbar.LENGTH_SHORT).show();
+    }
+
+    private void attemptLogin() {
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
+
+        if (!email.isEmpty() && !password.isEmpty()) {
+            viewModel.login(email, password);
+        } else {
+            Snackbar.make(binding.loginConstraintLayout, "Please enter email and password", Snackbar.LENGTH_SHORT).show();
+        }
     }
 }
