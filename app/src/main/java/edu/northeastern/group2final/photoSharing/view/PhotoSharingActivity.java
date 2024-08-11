@@ -4,15 +4,20 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,28 +30,49 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import edu.northeastern.group2final.R;
 import edu.northeastern.group2final.photoSharing.controller.PhotoViewModel;
 
 public class PhotoSharingActivity extends AppCompatActivity {
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
     private static final int REQUEST_IMAGE_CAPTURE = 100;
     private static final String PHOTOS_KEY = "photos";
     private static final int REQUEST_PERMISSION_MEDIA_ACCESS = 2;
     private static final int REQUEST_PERMISSION_WRITE_EXTERNAL = 22;
     private static final int REQUEST_PERMISSION_CAMERA = 3;
     private static final int REQUEST_IMAGE_PICK = 200;
+    private static final int REQUEST_LOCATION_PERMISSION = 10;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private RecyclerView recyclerView;
     private PhotoAdapter photoAdapter;
     private PhotoViewModel photoViewModel;
     private Bundle savedInstanceState;
+    private TextView sunriseTextView;
+    private View feedbackView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +103,187 @@ public class PhotoSharingActivity extends AppCompatActivity {
         FloatingActionButton fabSharePhotos = findViewById(R.id.fab_share_photos);
         fabSharePhotos.setOnClickListener(v -> sharePhotosToInstagram());
 
+        // Initialize FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         // Check permissions based on Android version
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkPermissionsTiramisu(savedInstanceState);
         } else {
             checkPermissionsPreTiramisu(savedInstanceState);
         }
+
+        // Initialize new UI components
+        sunriseTextView = findViewById(R.id.sunrise_text_view);
+        feedbackView = findViewById(R.id.feedback_view);
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            // Show dialog to ask for location access
+            showLocationDialog();
+        }
+        else{
+            checkLocationPermission();
+        }
+
+    }
+
+    private void showLocationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Location Access")
+                .setMessage("Give your location to help us suggest the best wake-up time based on the sunrise.")
+                .setPositiveButton("Yes, I'm interested", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        checkLocationPermission();
+                    }
+                })
+                .setNegativeButton("No, thank you", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sunriseTextView.setText("If you allows Location,we can give you more advices!\n Anyway, Enjoy using button on the right to share your wake-up experience!");
+                        sunriseTextView.setVisibility(TextView.VISIBLE);
+                    }
+                })
+                .create()
+                .show();
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+        } else {
+            getLocationAndCalculateSunrise();
+        }
+    }
+
+    private void getLocationAndCalculateSunrise() {
+        // Initialize FusedLocationProviderClient
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // Check if location permission is granted
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // Request location permission if not granted
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        // Get the last known location
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        // Location is not null, proceed with calculations
+                        double latitude = location.getLatitude();
+                        double longitude = location.getLongitude();
+                        String message = String.format(
+                                "Get Position Successfully!\nLatitude: %.2f, Longitude: %.2f",
+                                latitude, longitude
+                        );
+
+                        Toast.makeText(PhotoSharingActivity.this, message, Toast.LENGTH_LONG).show();
+
+                        // Get the current date
+                        Calendar calendar = Calendar.getInstance();
+                        int year = calendar.get(Calendar.YEAR);
+                        int month = calendar.get(Calendar.MONTH) + 1;
+                        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+                        // Calculate the time difference from sunrise
+                        long distSunrise = calculateTimeDifferenceFromSunrise(year, month, day, latitude, longitude);
+
+                        String advice = getWakeUpAdvice(latitude);
+
+                        sunriseTextView.setText(advice + "\nDon't forget to use button on the right to share your wake-up experience!");
+                        sunriseTextView.setVisibility(TextView.VISIBLE);
+                        showFeedbackOptions();
+                    } else {
+                        // Handle the case where the location is null
+                        Toast.makeText(PhotoSharingActivity.this, "Unable to get location. Please ensure location services are enabled.", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(this, e -> {
+                    // Handle failure to get location
+                    Toast.makeText(PhotoSharingActivity.this, "Failed to get location. Please try again.", Toast.LENGTH_LONG).show();
+                });
+    }
+
+    public static String getWakeUpAdvice(double latitude) {
+        String advice;
+
+        if (latitude > 66.5) {
+            advice = "You are in the Arctic Circle. During winter, you may experience long nights and very late sunrises. Consider using a light alarm clock to help wake up in darkness.";
+        } else if (latitude > 23.5 && latitude <= 66.5) {
+            advice = "You are in a temperate zone. Expect significant seasonal variations in daylight. Adjust your wake-up time according to the season, and try to maximize exposure to natural light in the morning.";
+        } else if (latitude >= -23.5 && latitude <= 23.5) {
+            advice = "You are near the equator. Daylight hours remain fairly consistent year-round, so maintaining a regular wake-up schedule is easier. Consider waking up with the sunrise to take advantage of the early morning light.";
+        } else if (latitude >= -66.5 && latitude < -23.5) {
+            advice = "You are in a temperate zone. Seasonal changes in daylight can affect your sleep cycle. In winter, consider waking up with an alarm that simulates sunrise to help adjust to shorter daylight hours.";
+        } else {
+            advice = "You are in the Antarctic Circle. Similar to the Arctic, you may face extreme variations in daylight. In winter, you might need to use artificial light to maintain a healthy wake-up routine.";
+        }
+
+        return advice;
+    }
+
+    private long calculateTimeDifferenceFromSunrise(int year, int month, int day, double latitude, double longitude) {
+        try {
+            // Build the API request URL
+            String apiUrl = "https://api.sunrise-sunset.org/json?lat=" + latitude + "&lng=" + longitude + "&date=" + year + "-" + month + "-" + day + "&formatted=0";
+
+            // Open the URL connection
+            URL url = new URL(apiUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            // Read the response
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // Parsing the JSON response
+            JSONObject jsonResponse = new JSONObject(response.toString());
+            //Log.d("PhotoSharingActivity", jsonResponse.toString());
+            String sunriseTimeString = jsonResponse.getJSONObject("results").getString("sunrise");
+
+            // Convert UTC time to local time
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
+            Date sunriseTime = sdf.parse(sunriseTimeString);
+
+            // Get the current time
+            Calendar calendar = Calendar.getInstance();
+            Date currentTime = calendar.getTime();
+
+            // Calculate the time difference
+            return currentTime.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0; // Returns 0 if the request or parse fails
+        }
+    }
+
+    private String formatTimeDifference(long distSunrise) {
+        long hours = distSunrise / 60;
+        long minutes = distSunrise % 60;
+        return hours + " hours and " + minutes + " minutes";
+    }
+
+    private void showFeedbackOptions() {
+        //Toast.makeText(PhotoSharingActivity.this, "Get Position Successfully!", Toast.LENGTH_LONG).show();
+        feedbackView.setVisibility(View.VISIBLE);
+
+        // Fade out after 5 seconds
+        feedbackView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                feedbackView.animate().alpha(0.0f).setDuration(1000).withEndAction(() -> feedbackView.setVisibility(View.GONE));
+            }
+        }, 5000);
     }
 
     private void checkPermissionsTiramisu(Bundle savedInstanceState) {
@@ -221,6 +422,12 @@ public class PhotoSharingActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
+            case LOCATION_PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getLocationAndCalculateSunrise();
+                } else {
+                    Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+                }
             case REQUEST_PERMISSION_CAMERA:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     dispatchTakePictureIntent();
